@@ -19,7 +19,8 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "hemispheres": mars_images_url(browser)
     }
 
     # Stop webdriver and return data
@@ -96,6 +97,35 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+def mars_images_url(browser):
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+    html = browser.html
+    html_soup = soup(html, 'html.parser')
+    # 2. Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+    # 3. Write code to retrieve the image urls and titles for each hemisphere.
+    item_box = html_soup.find('div', class_='collapsible results')
+    src_image = item_box.find_all('div' , class_='description')
+    for item in src_image:
+        hemisphere ={}
+        source_link = item.findChild()
+        source = source_link.get('href')
+        i_url = f'https://marshemispheres.com/{source}'
+        browser.visit(i_url)
+        #print("Success")
+        browser.is_element_present_by_css('div.list_text', wait_time=3)
+        html = browser.html
+        html_soup = soup(html, 'html.parser')
+        item_link = html_soup.find('div' , class_='downloads')
+        item_desc = html_soup.find('h2' , class_='title').text
+        src_l = item_link.findChildren(name='a')[0].get('href')
+        hemisphere = {"img_url":f'https://marshemispheres.com/{src_l}',"title":item_desc}
+        hemisphere_image_urls.append(hemisphere)
+        #print(item_desc)
+        browser.back()
+    return hemisphere_image_urls
 
 if __name__ == "__main__":
 
